@@ -1,0 +1,19 @@
+services:
+  statnet:
+    image: 'ghcr.io/airoflare/statnet:latest'  # Use the latest image of StatNet from the GitHub Container Registry
+    container_name: StatNet  # Set the container name to 'StatNet'
+    environment:
+      - SERVICE_URL_STATNET  # Define the Coolify magic environment variable 'SERVICE_URL_STATNET'
+      - 'ALLOWED_CORS_ORIGINS=${SERVICE_URL_STATNET}' # Set 'ALLOWED_CORS_ORIGINS' to the value of 'SERVICE_URL_STATNET'
+    volumes:
+      - '/data/statnet/container-names.json:/app/container-names.json:ro'  # Map container names JSON file to the container (read-only mode)
+      - '/var/run/docker.sock:/var/run/docker.sock:ro'  # Mount the Docker socket to allow interaction with the Docker engine (read-only mode)
+      - '/var/lib/docker/volumes/coolify-db:/var/lib/docker/volumes/coolify-db:ro'  # Mount the coolify-db volume to find disk space used by coolify (read-only mode)
+      - '/var/lib/docker/volumes/coolify-redis:/var/lib/docker/volumes/coolify-redis:ro'  # Mount the coolify-redis volume to find disk space used by coolify (read-only mode)
+      - '/data/coolify:/data/coolify:ro'  # Mount the /data/coolify directory to find disk space used by coolify (read-only mode)
+      - '/proc:/proc:ro'  # Mount the /proc directory in read-only mode, allowing the app to access host system stats (e.g., CPU, memory - read-only mode)
+      
+    # The app does not have built-in authentication. You can configure Basic Authentication using Traefik.
+    # The following label enables Basic Auth with the username and password as 'admin'.
+    # labels:
+    #   - 'traefik.http.middlewares.statnet.basicauth.users=admin:$apr1$lrew8s0x$iGVt42OQTDqakys1/4Mxy/'

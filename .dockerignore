@@ -1,0 +1,15 @@
+# Ignore build artifacts and local configurations
+.next                # Ignore Next.js build directory
+coolify.yaml         # Ignore Coolify configuration file
+
+# Ignore version control and metadata files
+.git                 # Ignore Git repository files
+.github             # Ignore GitHub workflows and configuration files
+
+# Ignore local environment and project files
+node_modules        # Ignore Node.js modules directory
+LICENSE             # Ignore license file
+README.md           # Ignore README file
+
+# Ignore image files (if they are not needed for the Docker build)
+image               # Ignore image directory (only used for github readme)

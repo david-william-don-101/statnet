@@ -1,0 +1,34 @@
+[
+  {
+    "key": "coolify-db",
+    "value": "Coolify Database"
+  },
+  {
+    "key": "coolify-realtime",
+    "value": "Coolify Realtime"
+  },
+  {
+    "key": "coolify-proxy",
+    "value": "Coolify Proxy"
+  },
+  {
+    "key": "coolify-redis",
+    "value": "Coolify Redis"
+  },
+  {
+    "key": "coolify",
+    "value": "Coolify"
+  },
+  {
+    "key": "umami-gw0c48ws4g8884",
+    "value": "Umami Analytics"
+  },
+  {
+    "key": "airoflarewebsite-ghiy71sfg8884",
+    "value": "Airoflare Website"
+  },
+  {
+    "key": "unbound-44okcgssocog844wow",
+    "value": "Unbound DNS Server"
+  }
+]
