@@ -162,6 +162,7 @@ On `amd64` processors, Docker sometimes needs write access to `/proc` to adjust 
 <br />
 
 ## For Developers
+
 To get started with development, you'll need to have [Node.js](https://nodejs.org/) and [bun](https://bun.sh/) installed.
 
 ```bash
@@ -169,11 +170,27 @@ To get started with development, you'll need to have [Node.js](https://nodejs.or
 git clone https://github.com/airoflare/statnet.git
 cd statnet
 
-# Build and run docker image locally (I fully test using docker locally)
-docker build -t metrics . && docker run -p 80:80 -v /var/run/docker.sock:/var/run/docker.sock metrics
+# Build the docker imageand run docker image locally (I fully test using docker locally)
+docker build -t metrics .
+
+# Run the docker image on port 80
+docker run -p 80:80 -v /var/run/docker.sock:/var/run/docker.sock metrics
 # → Opens at http://localhost:80
 ```
-    
+
+<br />
+
+Optional Configuration:
+
+```bash
+# If you want to allow other origins like 10.X.X.X or any Ipv4 with localhost you can add it using docker's built in enviroment argument and use the "ALLOWED_CORS_ORIGINS" enviroment variable
+
+#Example:
+docker run -p 80:80 -e ALLOWED_CORS_ORIGINS="10.0.0.8" -v /var/run/docker.sock:/var/run/docker.sock metrics
+
+# This will allow you to access the monitor using http://10.0.0.8:80 (10.0.0.8 is an example IP, make sure to use an IP related to the machine that you are running this on)
+```
+
 <br />
 
 ## Note

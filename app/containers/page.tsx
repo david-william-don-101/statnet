@@ -12,11 +12,11 @@ import { ContainerItem } from "@/components/container-item"
 import ContainerCard from "@/components/container-card"
 
 export default function ContainersPage() {
-  const { combinedData } = useWebSocket();
-  const [totalCpuData, setTotalCpuData] = useState<DataPoint[]>([{ value: 0, timestamp: Date.now() - 1000 }, { value: 0, timestamp: Date.now() }])
-  const [totalRamData, setTotalRamData] = useState<DataPoint[]>([{ value: 0, timestamp: Date.now() - 1000 }, { value: 0, timestamp: Date.now() }])
-  const [totalNetworkRxData, setTotalNetworkRxData] = useState<DataPoint[]>([{ value: 0, timestamp: Date.now() - 1000 }, { value: 0, timestamp: Date.now() }])
-  const [totalNetworkTxData, setTotalNetworkTxData] = useState<DataPoint[]>([{ value: 0, timestamp: Date.now() - 1000 }, { value: 0, timestamp: Date.now() }])
+  const { combinedData } = useWebSocket()
+  const [totalCpuData, setTotalCpuData] = useState<DataPoint[]>([])
+  const [totalRamData, setTotalRamData] = useState<DataPoint[]>([])
+  const [totalNetworkRxData, setTotalNetworkRxData] = useState<DataPoint[]>([])
+  const [totalNetworkTxData, setTotalNetworkTxData] = useState<DataPoint[]>([])
   const [containers, setContainers] = useState<Container[]>([])
   
   const [totalMemory, setTotalMemory] = useState(0);
@@ -24,68 +24,104 @@ export default function ContainersPage() {
   const [isExpanded, setIsExpanded] = useState(false)
 
   useEffect(() => {
-    const maxPoints = 7; // Keep last 8 data points for the graph
-
-    if (combinedData) {
-      // Sort containers: running first (by RAM usage), then others by name
-      const sortedContainers = [...combinedData.containers].sort((a, b) => {
-        // Prioritize running containers
-        const aIsRunning = a.status === "running";
-        const bIsRunning = b.status === "running";
-
-        if (aIsRunning && !bIsRunning) return -1; // a comes before b
-        if (!aIsRunning && bIsRunning) return 1;  // b comes before a
-
-        // If both are running, sort by RAM usage (descending), then by ID for stability
-        if (aIsRunning && bIsRunning) {
-          const aRam = a.ramUsage && a.ramUsage.length > 0 ? a.ramUsage[a.ramUsage.length - 1].value : 0;
-          const bRam = b.ramUsage && b.ramUsage.length > 0 ? b.ramUsage[b.ramUsage.length - 1].value : 0;
-          if (aRam !== bRam) {
-            return bRam - aRam;
-          }
-          return a.id.localeCompare(b.id); // Stable sort by ID
-        }
-
-        // If both are not running (stopped, exited, restarting), sort by display name, then by ID for stability
-        const nameComparison = (a.name || '').localeCompare(b.name || '');
-        if (nameComparison !== 0) {
-          return nameComparison;
-        }
-        return a.id.localeCompare(b.id); // Stable sort by ID
-      });
-      
-
-      setContainers(sortedContainers);
-
-      // Update total system memory for scaling
-      if (combinedData.systemInfo && combinedData.systemInfo.resourceData && combinedData.systemInfo.resourceData.memory && combinedData.systemInfo.resourceData.memory.length > 0) {
-        setTotalMemory(combinedData.systemInfo.resourceData.memory[0].totalMemory);
-      }
-
-      // Calculate total CPU and RAM for containers
-      const currentTotalCpu = combinedData.containers.reduce((sum, c) => sum + (c.cpuUsage[c.cpuUsage.length - 1]?.value || 0), 0);
-      const currentTotalRam = combinedData.containers.reduce((sum, c) => sum + (c.ramUsage[c.ramUsage.length - 1]?.value || 0), 0);
-
-      setTotalCpuData(prev => [...prev, { value: currentTotalCpu, timestamp: Date.now() }].slice(-maxPoints));
-      setTotalRamData(prev => [...prev, { value: currentTotalRam, timestamp: Date.now() }].slice(-maxPoints));
-
-      const currentTotalNetworkRx = combinedData.containers.reduce((sum, c) => sum + (c.networkRxBytes[c.networkRxBytes.length - 1]?.value || 0), 0);
-      const currentTotalNetworkTx = combinedData.containers.reduce((sum, c) => sum + (c.networkTxBytes[c.networkTxBytes.length - 1]?.value || 0), 0);
-
-      setTotalNetworkRxData(prev => [...prev, { value: currentTotalNetworkRx, timestamp: Date.now() }].slice(-maxPoints));
-      setTotalNetworkTxData(prev => [...prev, { value: currentTotalNetworkTx, timestamp: Date.now() }].slice(-maxPoints));
-
-      // Update total system memory for scaling
-      if (combinedData.systemInfo && combinedData.systemInfo.resourceData && combinedData.systemInfo.resourceData.memory && combinedData.systemInfo.resourceData.memory.length > 0) {
-        setTotalMemory(combinedData.systemInfo.resourceData.memory[0].totalMemory);
-      }
+    const maxPoints = 7;
+    const now = Date.now();
+    
+    // Initialize with proper default values if empty
+    if (totalCpuData.length === 0) {
+      setTotalCpuData([
+        { value: 0, timestamp: now - 1000 },
+        { value: 0, timestamp: now }
+      ]);
     }
-  }, [combinedData]);
+    if (totalRamData.length === 0) {
+      setTotalRamData([
+        { value: 0, timestamp: now - 1000 },
+        { value: 0, timestamp: now }
+      ]);
+    }
+    if (totalNetworkRxData.length === 0) {
+      setTotalNetworkRxData([
+        { value: 0, timestamp: now - 1000 },
+        { value: 0, timestamp: now }
+      ]);
+    }
+    if (totalNetworkTxData.length === 0) {
+      setTotalNetworkTxData([
+        { value: 0, timestamp: now - 1000 },
+        { value: 0, timestamp: now }
+      ]);
+    }
 
-  const currentTotalCpu = totalCpuData[totalCpuData.length - 1]?.value || 0
-  const currentTotalRam = totalRamData[totalRamData.length - 1]?.value || 0
-  const currentTotalNetworkRx = totalNetworkRxData[totalNetworkRxData.length - 1]?.value || 0;
-  const currentTotalNetworkTx = totalNetworkTxData[totalNetworkTxData.length - 1]?.value || 0;
+    if (!combinedData || !combinedData.containers) {
+      // Set default values if no data (Safe fallback)
+      setContainers([]);
+      setTotalCpuData(prev => [...prev].slice(-maxPoints));
+      setTotalRamData(prev => [...prev].slice(-maxPoints));
+      setTotalNetworkRxData(prev => [...prev].slice(-maxPoints));
+      setTotalNetworkTxData(prev => [...prev].slice(-maxPoints));
+      return;
+    }
+
+    // Sort containers: running first (by RAM usage), then others by name
+    const sortedContainers = [...combinedData.containers].sort((a, b) => {
+      // Prioritize running containers
+      const aIsRunning = a.status === "running";
+      const bIsRunning = b.status === "running";
+
+      if (aIsRunning && !bIsRunning) return -1; // a comes before b
+      if (!aIsRunning && bIsRunning) return 1; // b comes before a
+
+      // If both are running, sort by RAM usage (descending)
+      if (aIsRunning && bIsRunning) {
+        const aRam = a.ramUsage?.length > 0 ? a.ramUsage[a.ramUsage.length - 1]?.value || 0 : 0;
+        const bRam = b.ramUsage?.length > 0 ? b.ramUsage[b.ramUsage.length - 1]?.value || 0 : 0;
+        if (aRam !== bRam) {
+          return bRam - aRam;
+        }
+      }
+
+      // Sort by name as fallback
+      return (a.name || '').localeCompare(b.name || '');
+    });
+
+    setContainers(sortedContainers);
+
+    // Calculate totals
+    const currentTotalCpu = combinedData.containers.reduce((sum, c) => 
+      sum + ((c.cpuUsage && c.cpuUsage.length > 0) ? (c.cpuUsage[c.cpuUsage.length - 1]?.value || 0) : 0), 0);
+    
+    const currentTotalRam = combinedData.containers.reduce((sum, c) => 
+      sum + ((c.ramUsage && c.ramUsage.length > 0) ? (c.ramUsage[c.ramUsage.length - 1]?.value || 0) : 0), 0);
+    
+    const currentTotalNetworkRx = combinedData.containers.reduce((sum, c) => 
+      sum + ((c.networkRxBytes && c.networkRxBytes.length > 0) ? (c.networkRxBytes[c.networkRxBytes.length - 1]?.value || 0) : 0), 0);
+    
+    const currentTotalNetworkTx = combinedData.containers.reduce((sum, c) => 
+      sum + ((c.networkTxBytes && c.networkTxBytes.length > 0) ? (c.networkTxBytes[c.networkTxBytes.length - 1]?.value || 0) : 0), 0);
+
+    setTotalCpuData(prev => [...prev, { value: currentTotalCpu, timestamp: Date.now() }].slice(-maxPoints));
+    setTotalRamData(prev => [...prev, { value: currentTotalRam, timestamp: Date.now() }].slice(-maxPoints));
+    setTotalNetworkRxData(prev => [...prev, { value: currentTotalNetworkRx, timestamp: Date.now() }].slice(-maxPoints));
+    setTotalNetworkTxData(prev => [...prev, { value: currentTotalNetworkTx, timestamp: Date.now() }].slice(-maxPoints));
+
+    // Update total system memory for scaling
+    if (combinedData.systemInfo?.resourceData?.memory?.[0]?.totalMemory) {
+      setTotalMemory(combinedData.systemInfo.resourceData.memory[0].totalMemory);
+    }
+  }, [combinedData, totalCpuData.length, totalRamData.length, totalNetworkRxData.length, totalNetworkTxData.length]);
+
+  // Safe data access
+  const currentTotalCpu = totalCpuData[totalCpuData.length - 1]?.value ?? 0;
+  const currentTotalRam = totalRamData[totalRamData.length - 1]?.value ?? 0;
+  const currentTotalNetworkRx = totalNetworkRxData[totalNetworkRxData.length - 1]?.value ?? 0;
+  const currentTotalNetworkTx = totalNetworkTxData[totalNetworkTxData.length - 1]?.value ?? 0;
+
+  // Ensure data arrays are never null for ResourceCard components
+  const safeNetworkRxData = totalNetworkRxData || [];
+  const safeNetworkTxData = totalNetworkTxData || [];
+  const safeCpuData = totalCpuData || [];
+  const safeRamData = totalRamData || [];
 
   const formattedTotalRamValue = formatMemorySize(currentTotalRam);
 
@@ -119,35 +155,35 @@ export default function ContainersPage() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
-            <ResourceCard icon={Cog} label="Compute" value={currentTotalCpu} data={totalCpuData} color="#1e90ff" maxValue={100} />
+            <ResourceCard icon={Cog} label="Compute" value={currentTotalCpu} data={safeCpuData} color="#1e90ff" maxValue={100} />
             <ResourceCard
               icon={Layers}
               label="Memory"
               value={currentTotalRam}
-              data={totalRamData.map(d => ({ value: d.value, timestamp: d.timestamp }))}
+              data={safeRamData}
               color="#00ced1"
               valueDisplay={formattedTotalRamValue}
-              maxValue={totalMemory} // Pass totalMemory for scaling
+              maxValue={totalMemory || 1}
             />
             <ResourceCard
               icon={ArrowDown}
               label="Inbound"
               value={currentTotalNetworkRx}
-              data={totalNetworkRxData}
+              data={safeNetworkRxData}
               color="#8b5cf6"
               unit="B/s"
               valueDisplay={formatNetworkSpeed(currentTotalNetworkRx)}
-              maxValue={Math.max(...totalNetworkRxData.map(d => d.value), ...totalNetworkTxData.map(d => d.value), 1) * 1.15}
+              maxValue={Math.max(...safeNetworkRxData.map(d => d?.value ?? 0), ...safeNetworkTxData.map(d => d?.value ?? 0), 1)}
             />
             <ResourceCard
               icon={ArrowUp}
               label="Outbound"
               value={currentTotalNetworkTx}
-              data={totalNetworkTxData}
+              data={safeNetworkTxData}
               color="#8b5cf6"
               unit="B/s"
               valueDisplay={formatNetworkSpeed(currentTotalNetworkTx)}
-              maxValue={Math.max(...totalNetworkRxData.map(d => d.value), ...totalNetworkTxData.map(d => d.value), 1) * 1.15}
+              maxValue={Math.max(...safeNetworkRxData.map(d => d?.value ?? 0), ...safeNetworkTxData.map(d => d?.value ?? 0), 1)}
             />
           </div>
         </motion.div>
@@ -176,29 +212,42 @@ export default function ContainersPage() {
         </AnimatePresence>
       </Card>
 
-      {/* Display individual container cards */}
-      {combinedData && combinedData.containers.length > 0 && (
+      {/* Display individual container cards with safety checks */}
+      {(combinedData?.containers || []).length > 0 ? (
         <motion.div
           className="flex flex-col items-center justify-start w-full space-y-4 pt-4"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5 }}
         >
-          {combinedData.containers
-            
+          {(combinedData?.containers || [])
             .sort((a, b) => {
-              // Sort by status: running first, then others
               const statusOrder = { "running": 0, "restarting": 1, "stopped": 2, "exited": 3 };
-              const statusComparison = statusOrder[a.status] - statusOrder[b.status];
+              const statusComparison = (statusOrder[a?.status] ?? 999) - (statusOrder[b?.status] ?? 999);
               if (statusComparison !== 0) {
                 return statusComparison;
               }
-              // Then sort by name ascending
-              return a.name.localeCompare(b.name);
+              return ((a?.name || '') || '').localeCompare((b?.name || '') || '');
             })
             .map((container) => (
-              <ContainerCard key={container.id} container={container} />
+              <ContainerCard 
+                key={container?.id || Math.random().toString()} 
+                container={container} 
+              />
             ))}
+        </motion.div>
+      ) : (
+        <motion.div
+          className="flex flex-col items-center justify-center w-full p-8 text-center"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5 }}
+        >
+          <Package className="w-12 h-12 text-muted-foreground mb-4" />
+          <h3 className="text-lg font-medium mb-2">No Containers Found</h3>
+          <p className="text-sm text-muted-foreground">
+            There are currently no Docker containers to display.
+          </p>
         </motion.div>
       )}
     </motion.div>

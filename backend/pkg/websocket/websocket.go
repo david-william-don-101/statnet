@@ -11,26 +11,35 @@ import (
 	"backend/pkg/monitor"
 )
 
-var (
-	upgrader = websocket.Upgrader{
-		ReadBufferSize:  1024,
-		WriteBufferSize: 1024,
-		CheckOrigin: func(r *http.Request) bool {
-			allowedOriginsStr := os.Getenv("ALLOWED_CORS_ORIGINS")
-			if allowedOriginsStr == "" {
-				allowedOriginsStr = "http://localhost" // Default value
+var upgrader = websocket.Upgrader{
+	ReadBufferSize:  1024,
+	WriteBufferSize: 1024,
+	CheckOrigin: func(r *http.Request) bool {
+		allowedOriginsStr := os.Getenv("ALLOWED_CORS_ORIGINS")
+		if allowedOriginsStr == "" {
+			allowedOriginsStr = "localhost,127.0.0.1"
+		}
+		allowedOrigins := strings.Split(allowedOriginsStr, ",")
+
+		origin := r.Header.Get("Origin")
+
+		for _, o := range allowedOrigins {
+			o = strings.TrimSpace(o)
+			if o == "" {
+				continue
 			}
-			allowedOrigins := strings.Split(allowedOriginsStr, ",")
-			origin := r.Header.Get("Origin")
-			for _, allowedOrigin := range allowedOrigins {
-				if origin == allowedOrigin {
-					return true
-				}
+
+			if !strings.HasPrefix(o, "http://") && !strings.HasPrefix(o, "https://") {
+				o = "http://" + o
 			}
-			return false
-		},
-	}
-)
+
+			if strings.HasPrefix(origin, o) {
+				return true
+			}
+		}
+		return false
+	},
+}
 
 // WebSocket handler for real-time data updates
 func WsHandler(w http.ResponseWriter, r *http.Request, mon *monitor.Monitor) {
@@ -44,16 +53,14 @@ func WsHandler(w http.ResponseWriter, r *http.Request, mon *monitor.Monitor) {
 	log.Println("A WebSocket client connected")
 
 	for {
-		// Get combined data from the monitor
 		combinedData := mon.GetCombinedData()
 
-		// Send data over WebSocket
 		err = conn.WriteJSON(combinedData)
 		if err != nil {
 			log.Printf("WebSocket write failed: %v", err)
-			break // Exit loop if write fails (client disconnected)
+			break
 		}
-		time.Sleep(time.Second) // Send updates every second
+		time.Sleep(time.Second)
 	}
 
 	log.Println("WebSocket client disconnected")
